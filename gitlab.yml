@@ -1,7 +1,7 @@
 # version: '3'
 # services:
 #   gitlab:
-#     image: gitlab/gitlab-ce:11.10.4-ce.0
+#     image: gitlab/gitlab-ce:latest
 #     hostname: git.upnl.org
 #     ports:
 #       - 127.0.0.1:8880:80
@@ -10,3 +10,21 @@
 #       - /srv/gitlab/config:/etc/gitlab
 #       - /srv/gitlab/logs:/var/log/gitlab
 #       - /srv/gitlab/data:/var/opt/gitlab
+#   gitlab-runner:
+#     image: gitlab/gitlab-runner:alpine
+#     command: |
+#       register \
+#         --non-interactive \
+#         --executor "docker" \
+#         --docker-image alpine:3 \
+#         --url $GITLAB_URL \
+#         --registration-token $GITLAB_RUNNER_TOKEN \
+#         --description "gemini-runner" \
+#         --tag-list "docker,gemini" \
+#         --run-untagged \
+#         --locked="false"
+#     env_file:
+#       - /srv/gitlab/runner-config/env
+#     deploy:
+#       mode: replicated
+#       replicas: 4
