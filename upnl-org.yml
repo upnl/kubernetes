@@ -32,3 +32,13 @@ services:
       - redis
     healthcheck:
       disable: true
+
+  backup:
+    image: upnl-org-backup
+    depends_on:
+      - postgres
+    env_file:
+      - /srv/upnl.org/config/env
+    volumes:
+      - /srv/upnl.org/upload:/app/upload
+      - /srv/upnl.org/backup:/app/backup
