@@ -20,7 +20,7 @@ services:
     volumes:
       - /srv/upnl.org/upload:/app/homepage/upload
     ports:
-      - '127.0.0.1:54321:54321'
+      - '54321:54321'
 
   celery:
     image: upnl-org
@@ -30,3 +30,5 @@ services:
     depends_on:
       - postgres
       - redis
+    healthcheck:
+      disable: true
