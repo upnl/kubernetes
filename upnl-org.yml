@@ -34,7 +34,7 @@ services:
       disable: true
 
   backup:
-    image: upnl-org-backup
+    image: upnl/upnl-org-backup
     depends_on:
       - postgres
     env_file:
