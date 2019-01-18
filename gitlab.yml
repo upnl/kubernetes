@@ -1,7 +1,7 @@
 version: '3'
 services:
   gitlab:
-    image: gitlab/gitlab-ce:latest
+    image: gitlab/gitlab-ce:11.6.1-ce.0
     hostname: git.upnl.org
     ports:
       - 127.0.0.1:8880:80
