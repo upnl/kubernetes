@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pokemon-db
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pokemon-db
+  namespace: pokemon-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  volumeName: pokemon-db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokemon-db
+spec:
+  minReadySeconds: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pokemon-db
+  template:
+    metadata:
+      labels:
+        app: pokemon-db
+    spec:
+      activeDeadlineSeconds: 2
+      containers:
+        - name: flask
+          image: 852259342717.dkr.ecr.ap-northeast-2.amazonaws.com/pokemon-db:aef1558f
+          ports:
+            - containerPort: 54323
+---
+# TODO: 서비스, 인그레스
