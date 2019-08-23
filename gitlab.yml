@@ -1,12 +1,12 @@
-version: '3'
-services:
-  gitlab:
-    image: gitlab/gitlab-ce:11.10.4-ce.0
-    hostname: git.upnl.org
-    ports:
-      - 127.0.0.1:8880:80
-      - 22:22
-    volumes:
-      - /srv/gitlab/config:/etc/gitlab
-      - /srv/gitlab/logs:/var/log/gitlab
-      - /srv/gitlab/data:/var/opt/gitlab
+# version: '3'
+# services:
+#   gitlab:
+#     image: gitlab/gitlab-ce:11.10.4-ce.0
+#     hostname: git.upnl.org
+#     ports:
+#       - 127.0.0.1:8880:80
+#       - 22:22
+#     volumes:
+#       - /srv/gitlab/config:/etc/gitlab
+#       - /srv/gitlab/logs:/var/log/gitlab
+#       - /srv/gitlab/data:/var/opt/gitlab
