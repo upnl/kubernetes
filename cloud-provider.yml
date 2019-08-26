@@ -52,11 +52,17 @@ spec:
             #   https://kubernetes.io/docs/reference/command-line-tools-reference/cloud-controller-manager/
           volumeMounts:
             - mountPath: /etc/ssl/certs
-              name: certificates
+              name: certs
+            - mountPath: /etc/pki
+              name: pki
       volumes:
-        - name: certificates
+        - name: certs
           hostPath:
             path: /etc/ssl/certs
+            type: Directory
+        - name: pki
+          hostPath:
+            path: /etc/pki
             type: Directory
 
       tolerations:
