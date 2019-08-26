@@ -48,16 +48,19 @@ spec:
             - --allocate-node-cidrs=true
             - --configure-cloud-routes=true
             - --cluster-cidr=172.17.0.0/16
-            - --kubeconfig=/etc/rancher/k3s/k3s.yaml
+            - --kubeconfig=/root/cloud-controller-manager.yaml
             # Reference:
             #   https://kubernetes.io/docs/reference/command-line-tools-reference/cloud-controller-manager/
           volumeMounts:
             - mountPath: /etc/ssl/certs
               name: certs
+              readOnly: true
             - mountPath: /etc/pki
               name: pki
-            - mountPath: /etc/rancher/k3s
-              name: kubeconfig
+              readOnly: true
+            - mountPath: /root/cloud-controller-manager.yaml
+              name: cloud-controller-manager-config
+              readOnly: true
       volumes:
         - name: certs
           hostPath:
@@ -67,10 +70,10 @@ spec:
           hostPath:
             path: /etc/pki
             type: Directory
-        - name: kubeconfig
+        - name: cloud-controller-manager-config
           hostPath:
-            path: /etc/rancher/k3s
-            type: Directory
+            path: /etc/rancher/k3s/cloud-controller-manager.yaml
+            type: File
 
       tolerations:
 
