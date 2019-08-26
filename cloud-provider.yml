@@ -50,6 +50,14 @@ spec:
             - --cluster-cidr=172.17.0.0/16
             # Reference:
             #   https://kubernetes.io/docs/reference/command-line-tools-reference/cloud-controller-manager/
+          volumeMounts:
+            - mountPath: /etc/ssl/certs
+              name: certificates
+      volumes:
+        - name: certificates
+          hostPath:
+            path: /etc/ssl/certs
+            type: Directory
 
       tolerations:
 
