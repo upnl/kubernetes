@@ -48,6 +48,7 @@ spec:
             - --allocate-node-cidrs=true
             - --configure-cloud-routes=true
             - --cluster-cidr=172.17.0.0/16
+            - --kubeconfig=/etc/rancher/k3s/k3s.yaml
             # Reference:
             #   https://kubernetes.io/docs/reference/command-line-tools-reference/cloud-controller-manager/
           volumeMounts:
@@ -55,6 +56,8 @@ spec:
               name: certs
             - mountPath: /etc/pki
               name: pki
+            - mountPath: /etc/rancher/k3s
+              name: kubeconfig
       volumes:
         - name: certs
           hostPath:
@@ -63,6 +66,10 @@ spec:
         - name: pki
           hostPath:
             path: /etc/pki
+            type: Directory
+        - name: kubeconfig
+          hostPath:
+            path: /etc/rancher/k3s
             type: Directory
 
       tolerations:
