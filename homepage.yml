@@ -1,44 +1,179 @@
-# version: '3'
-#
-# services:
-#   postgres:
-#     image: postgres:9.3-alpine
-#     volumes:
-#       - /srv/upnl.org/postgres:/var/lib/postgresql/data
-#     env_file:
-#       - /srv/upnl.org/config/env
-#
-#   redis:
-#     image: redis:4-alpine
-#
-#   upnl-org:
-#     image: upnl-org:2019-05-13
-#     depends_on:
-#       - postgres
-#     env_file:
-#       - /srv/upnl.org/config/env
-#     volumes:
-#       - /srv/upnl.org/upload:/app/homepage/upload
-#     ports:
-#       - '54321:54321'
-#
-#   celery:
-#     image: upnl-org
-#     command: celery worker -A run.celery
-#     env_file:
-#       - /srv/upnl.org/config/env
-#     depends_on:
-#       - postgres
-#       - redis
-#     healthcheck:
-#       disable: true
-#
-#   backup:
-#     image: upnl/upnl-org-backup
-#     depends_on:
-#       - postgres
-#     env_file:
-#       - /srv/upnl.org/config/env
-#     volumes:
-#       - /srv/upnl.org/upload:/app/upload
-#       - /srv/upnl.org/backup:/app/backup
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homepage
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: homepage
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:9.3-alpine
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgresVolume
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: postgresVolume
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: aws-ebs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: homepage
+spec:
+  selector:
+    app: postgres
+  type: ClusterIP
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: homepage
+spec:
+  serviceName: redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:4-alpine
+        ports:
+        - containerPort: 6379
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: homepage
+spec:
+  selector:
+    app: redis
+  type: ClusterIP
+  ports:
+  - port: 6379
+    protocol: TCP
+    targetPort: 6379
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: upload
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: aws-ebs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: homepage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: upnl-org
+        image: upnl-org:2019-05-13
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: upload
+          mountPath: /app/homepage/upload
+      volume:
+        - name: upload
+          persistentVolumeClaim:
+            claimName: upload
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery
+  namespace: homepage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: celery
+  template:
+    metadata:
+      labels:
+        app: celery
+    spec:
+      containers:
+      - name: upnl-org
+        image: upnl-org:2019-05-13
+        command: "celery"
+        args: ["worker", "-A", "run.celery"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  selector:
+    app: homepage
+  type: ClusterIP
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  rules:
+    - host: upnl.org
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: homepage
+              servicePort: 80
