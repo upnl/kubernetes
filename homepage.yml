@@ -39,7 +39,7 @@ spec:
       resources:
         requests:
           storage: 1Gi
-      storageClassName: aws-ebs
+      storageClassName: ebs
 ---
 apiVersion: v1
 kind: Service
@@ -104,7 +104,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: aws-ebs
+  storageClassName: ebs
 ---
 apiVersion: apps/v1
 kind: Deployment
