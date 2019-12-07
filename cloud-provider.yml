@@ -39,13 +39,14 @@ spec:
       serviceAccountName: cloud-controller-manager
       containers:
         - name: cloud-controller-manager
-          image: k8s.gcr.io/cloud-controller-manager:v1.14.6
+          image: k8s.gcr.io/cloud-controller-manager:v1.15.4
           command:
             - /usr/local/bin/cloud-controller-manager
+            - --v=9 # TODO: debugging
             - --cloud-provider=aws
             - --leader-elect=true
             - --use-service-account-credentials
-            - --allocate-node-cidrs=true
+            - --allocate-node-cidrs=false
             - --configure-cloud-routes=false
             - --cluster-cidr=172.17.0.0/16
             - --kubeconfig=/root/cloud-controller-manager.yaml
