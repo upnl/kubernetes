@@ -37,21 +37,18 @@ spec:
         k8s-app: cloud-controller-manager
     spec:
       serviceAccountName: cloud-controller-manager
+      hostNetwork: true
       containers:
         - name: cloud-controller-manager
-          image: k8s.gcr.io/cloud-controller-manager:v1.15.4
+          # https://console.cloud.google.com/gcr/images/google-containers/GLOBAL/hyperkube
+          image: k8s.gcr.io/hyperkube:v1.16.3
           command:
+            # https://kubernetes.io/docs/reference/command-line-tools-reference/cloud-controller-manager/
             - /usr/local/bin/cloud-controller-manager
-            - --v=9 # TODO: debugging
             - --cloud-provider=aws
-            - --leader-elect=true
-            - --use-service-account-credentials
             - --allocate-node-cidrs=false
             - --configure-cloud-routes=false
-            - --cluster-cidr=172.17.0.0/16
-            - --kubeconfig=/root/cloud-controller-manager.yaml
-            # Reference:
-            #   https://kubernetes.io/docs/reference/command-line-tools-reference/cloud-controller-manager/
+            - --kubeconfig=/root/k3s.yaml
           volumeMounts:
             - mountPath: /etc/ssl/certs
               name: certs
@@ -59,7 +56,7 @@ spec:
             - mountPath: /etc/pki
               name: pki
               readOnly: true
-            - mountPath: /root/cloud-controller-manager.yaml
+            - mountPath: /root/k3s.yaml
               name: cloud-controller-manager-config
               readOnly: true
       volumes:
@@ -73,7 +70,7 @@ spec:
             type: Directory
         - name: cloud-controller-manager-config
           hostPath:
-            path: /etc/rancher/k3s/cloud-controller-manager.yaml
+            path: /etc/rancher/k3s/k3s.yaml
             type: File
 
       tolerations:
