@@ -4,11 +4,8 @@ metadata:
   name: test-ecr
 spec:
   containers:
-  - name: ubuntu
-    image: ubuntu
-    command:
-      - tail
-      - -f
-      - /dev/null
+  - name: alpine
+    image: alpine
+    command: ["tail", "-f", "/dev/null"]
     securityContext:
       privileged: true

@@ -16,13 +16,12 @@ metadata:
   name: test-pvc
 spec:
   containers:
-  - name: nginx
-    image: nginx
-    ports:
-    - containerPort: 80
+  - name: alpine
+    image: alpine
+    command: ["tail", "-f", "/dev/null"]
     volumeMounts:
-    - name: pvc
-      mountPath: /pvc
+      - name: pvc
+        mountPath: /pvc
   volumes:
     - name: pvc
       persistentVolumeClaim:
