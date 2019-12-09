@@ -46,9 +46,6 @@ spec:
             # https://kubernetes.io/docs/reference/command-line-tools-reference/cloud-controller-manager/
             - /usr/local/bin/cloud-controller-manager
             - --cloud-provider=aws
-            - --allocate-node-cidrs=false
-            - --configure-cloud-routes=false
-            - --kubeconfig=/root/k3s.yaml
           volumeMounts:
             - mountPath: /etc/ssl/certs
               name: certs
@@ -60,6 +57,8 @@ spec:
               name: cloud-controller-manager-config
               readOnly: true
       volumes:
+        # This is required since hyperkube docker image does not contains CA
+        # certificates
         - name: certs
           hostPath:
             path: /etc/ssl/certs
@@ -68,24 +67,22 @@ spec:
           hostPath:
             path: /etc/pki
             type: Directory
+        # This is required to let cloud controller manager access kubernetes
+        # cluster
         - name: cloud-controller-manager-config
           hostPath:
             path: /etc/rancher/k3s/k3s.yaml
             type: File
-
       tolerations:
-
-        # this is required so CCM can bootstrap itself
+        # This is required so CCM can bootstrap itself
         - key: node.cloudprovider.kubernetes.io/uninitialized
           value: "true"
           effect: NoSchedule
-
-        # this is to have the daemonset runnable on master nodes the taint may
+        # This is to have the daemonset runnable on master nodes the taint may
         # vary depending on your cluster setup
         - key: node-role.kubernetes.io/master
           effect: NoSchedule
-
-      # this is to restrict CCM to only run on master nodes the node selector
-      # may vary depending on your cluster setup
       nodeSelector:
+        # This is to restrict CCM to only run on master nodes the node selector
+        # may vary depending on your cluster setup
         node-role.kubernetes.io/master: "true"
