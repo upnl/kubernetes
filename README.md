@@ -1,3 +1,9 @@
-유피넬 쿠버네티스 YAML 파일 보관소
+UPnL Kubernetes
 ========
-나아중에 Helm 차티파이를 할 예정
+
+- [`infra/`]: "infra" is YAMLs which should be deployed ahead of "service"
+  YAMLs. It includes Cloud Controller Manager, Storage Class, etc.
+- [`service/`]: "service" is actual YAMLs for UPnL services.
+
+[`infra/`]: infra/
+[`service/`]: service/
