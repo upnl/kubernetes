@@ -62,6 +62,8 @@ kind: Ingress
 metadata:
   name: pokemon-db
   namespace: pokemon-db
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   tls:
     - hosts: ['pokemon.upnl.org']
