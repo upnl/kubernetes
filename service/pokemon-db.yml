@@ -64,6 +64,9 @@ metadata:
   namespace: pokemon-db
   annotations:
     ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/force-hsts: "true"
+    ingress.kubernetes.io/hsts-max-age: "15778800"
+    ingress.kubernetes.io/hsts-include-subdomains: "false"
 spec:
   tls:
     - hosts: ['pokemon.upnl.org']
