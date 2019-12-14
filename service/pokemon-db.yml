@@ -20,8 +20,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pokemon-db
+  namespace: pokemon-db
 spec:
-  minReadySeconds: 2
   replicas: 1
   selector:
     matchLabels:
@@ -31,11 +31,58 @@ spec:
       labels:
         app: pokemon-db
     spec:
-      activeDeadlineSeconds: 2
       containers:
         - name: flask
-          image: 852259342717.dkr.ecr.ap-northeast-2.amazonaws.com/pokemon-db:aef1558f
+          image: pokemon-db:2019-09-23
           ports:
             - containerPort: 54323
+          volumeMounts:
+            - name: pokemon-db-sqlite-db
+              mountPath: /app/pokemon/db/
+      volumes:
+        - name: pokemon-db-sqlite-db
+          persistentVolumeClaim:
+            claimName: pokemon-db
 ---
-# TODO: 서비스, 인그레스
+apiVersion: v1
+kind: Service
+metadata:
+  name: pokemon-db
+  namespace: pokemon-db
+spec:
+  selector:
+    app: pokemon-db
+  ports:
+    - protocol: TCP
+      port: 54323
+      targetPort: 54323
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: pokemon-db
+  namespace: pokemon-db
+spec:
+  tls:
+    - hosts: ['pokemon.upnl.org']
+      secretName: pokemon-db
+  rules:
+    - host: pokemon.upnl.org
+      http:
+        paths:
+          - backend:
+              serviceName: pokemon-db
+              servicePort: 54323
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: pokemon-db
+  namespace: pokemon-db
+spec:
+  secretName: pokemon-db
+  dnsNames:
+    - pokemon.upnl.org
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
