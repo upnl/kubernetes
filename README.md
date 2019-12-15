@@ -10,3 +10,5 @@ UPnL Kubernetes
 [`infra/`]: infra/
 [`service/`]: service/
 [`test/`]: test/
+
+See [upnl/infra](https://github.com/upnl/infra) for Terraform codes of UPnL infrastructure.
