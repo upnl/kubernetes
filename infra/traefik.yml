@@ -1,0 +1,15 @@
+# Forked from https://github.com/rancher/k3s/blob/v1.0.0/manifests/traefik.yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  chart: https://%{KUBERNETES_API}%/static/charts/traefik-1.77.1.tgz
+  set:
+    rbac.enabled: "true"
+    ssl.enabled: "true"
+    metrics.prometheus.enabled: "true"
+    kubernetes.ingressEndpoint.useDefaultPublishedService: "true"
+    # UPDATE
+    ssl.tlsMinVersion: VersionTLS12
