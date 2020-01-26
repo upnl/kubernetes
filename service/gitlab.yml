@@ -1,30 +1,105 @@
-# version: '3'
-# services:
-#   gitlab:
-#     image: gitlab/gitlab-ce:latest
-#     hostname: git.upnl.org
-#     ports:
-#       - 127.0.0.1:8880:80
-#       - 22:22
-#     volumes:
-#       - /srv/gitlab/config:/etc/gitlab
-#       - /srv/gitlab/logs:/var/log/gitlab
-#       - /srv/gitlab/data:/var/opt/gitlab
-#   gitlab-runner:
-#     image: gitlab/gitlab-runner:alpine
-#     command: |
-#       register \
-#         --non-interactive \
-#         --executor "docker" \
-#         --docker-image alpine:3 \
-#         --url $GITLAB_URL \
-#         --registration-token $GITLAB_RUNNER_TOKEN \
-#         --description "gemini-runner" \
-#         --tag-list "docker,gemini" \
-#         --run-untagged \
-#         --locked="false"
-#     env_file:
-#       - /srv/gitlab/runner-config/env
-#     deploy:
-#       mode: replicated
-#       replicas: 4
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitlab
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 40Gi
+  storageClassName: ebs
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  serviceName: gitlab
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      containers:
+        - name: gitlab
+          image: gitlab/gitlab-ce:12.3.0-ce.0
+          ports:
+            - containerPort: 80
+            - containerPort: 22
+          volumeMounts:
+            - name: gitlab
+              mountPath: /etc/gitlab
+              subPath: config
+            - name: gitlab
+              mountPath: /var/opt/gitlab
+              subPath: data
+            - name: gitlab
+              mountPath: /var/log/gitlab
+              subPath: logs
+      volumes:
+        - name: gitlab
+          persistentVolumeClaim:
+            claimName: gitlab
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  selector:
+    app: gitlab
+  type: ClusterIP
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: gitlab
+  namespace: gitlab
+  # annotations:
+  #   ingress.kubernetes.io/ssl-redirect: "true"
+  #   ingress.kubernetes.io/force-hsts: "true"
+  #   ingress.kubernetes.io/hsts-max-age: "15778800"
+  #   ingress.kubernetes.io/hsts-include-subdomains: "false"
+spec:
+  # tls:
+  #   - hosts: ['git.upnl.org']
+  #     secretName: gitlab
+  rules:
+  - host: git.upnl.org
+    http:
+      paths:
+      - backend:
+          serviceName: gitlab
+          servicePort: 80
+# ---
+# apiVersion: cert-manager.io/v1alpha2
+# kind: Certificate
+# metadata:
+#   name: gitlab
+#   namespace: gitlab
+# spec:
+#   secretName: gitlab
+#   dnsNames:
+#     - git.upnl.org
+#   issuerRef:
+#     name: letsencrypt-prod
+#     kind: ClusterIssuer
+
+# TODO: gitlab-runner
