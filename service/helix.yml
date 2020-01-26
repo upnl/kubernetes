@@ -158,15 +158,15 @@ kind: Ingress
 metadata:
   name: helix
   namespace: helix
-  # annotations:
-  #   ingress.kubernetes.io/ssl-redirect: 'true'
-  #   ingress.kubernetes.io/force-hsts: "true"
-  #   ingress.kubernetes.io/hsts-max-age: "15778800"
-  #   ingress.kubernetes.io/hsts-include-subdomains: "false"
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: 'true'
+    ingress.kubernetes.io/force-hsts: "true"
+    ingress.kubernetes.io/hsts-max-age: "15778800"
+    ingress.kubernetes.io/hsts-include-subdomains: "false"
 spec:
-  # tls:
-  # - hosts: ['helix.upnl.org']
-  #   secretName: helix-cert
+  tls:
+  - hosts: ['helix.upnl.org']
+    secretName: helix-cert
   rules:
   - host: helix.upnl.org
     http:
@@ -174,16 +174,16 @@ spec:
       - backend:
           serviceName: helix
           servicePort: 80
-# ---
-# apiVersion: cert-manager.io/v1alpha2
-# kind: Certificate
-# metadata:
-#   name: helix-cert
-#   namespace: helix
-# spec:
-#   secretName: helix-cert
-#   dnsNames:
-#   - helix.upnl.org
-#   issuerRef:
-#     name: letsencrypt-prod
-#     kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: helix-cert
+  namespace: helix
+spec:
+  secretName: helix-cert
+  dnsNames:
+  - helix.upnl.org
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
