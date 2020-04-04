@@ -14,7 +14,9 @@ spec:
   resources:
     requests:
       storage: 40Gi
-  storageClassName: ebs
+  storageClassName: local
+  local:
+    path: /srv/gitlab
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -82,7 +84,7 @@ spec:
   #   - hosts: ['git.upnl.org']
   #     secretName: gitlab
   rules:
-  - host: git.upnl.org
+  - host: newgit.upnl.org
     http:
       paths:
       - backend:
