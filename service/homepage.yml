@@ -24,7 +24,7 @@ spec:
         image: postgres:9.3-alpine
         volumeMounts:
         - name: db
-          mountPath: /var/lib/postgresql
+          mountPath: /var/lib/postgresql/data
           subPath: postgres
         envFrom:
         - secretRef:
