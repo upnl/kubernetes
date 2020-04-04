@@ -3,21 +3,6 @@ kind: Namespace
 metadata:
   name: gitlab
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: gitlab
-  namespace: gitlab
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 40Gi
-  storageClassName: local
-  local:
-    path: /srv/gitlab
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -52,8 +37,9 @@ spec:
               subPath: logs
       volumes:
         - name: gitlab
-          persistentVolumeClaim:
-            claimName: gitlab
+          hostPath:
+              path: /srv/gitlab
+              type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service

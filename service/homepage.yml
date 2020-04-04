@@ -3,19 +3,6 @@ kind: Namespace
 metadata:
   name: homepage
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres
-  namespace: homepage
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: ebs
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -38,13 +25,15 @@ spec:
         volumeMounts:
         - name: db
           mountPath: /var/lib/postgresql
+          subPath: postgres
         envFrom:
         - secretRef:
             name: env
       volumes:
       - name: db
-        persistentVolumeClaim:
-          claimName: postgres
+        hostPath:
+            path: /srv/homepage
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
@@ -131,13 +120,15 @@ spec:
         volumeMounts:
         - name: upload
           mountPath: /app/homepage/upload
+          subPath: upload
         envFrom:
         - secretRef:
             name: env
       volumes:
         - name: upload
-          persistentVolumeClaim:
-            claimName: upload
+          hostPath:
+            path: /srv/homepage
+            type: DirectoryOrCreate
 ---
 apiVersion: apps/v1
 kind: Deployment
