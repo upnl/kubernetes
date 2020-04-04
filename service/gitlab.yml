@@ -60,15 +60,15 @@ kind: Ingress
 metadata:
   name: gitlab
   namespace: gitlab
-  # annotations:
-  #   ingress.kubernetes.io/ssl-redirect: "true"
-  #   ingress.kubernetes.io/force-hsts: "true"
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/force-hsts: "true"
   #   ingress.kubernetes.io/hsts-max-age: "15778800"
   #   ingress.kubernetes.io/hsts-include-subdomains: "false"
 spec:
-  # tls:
-  #   - hosts: ['git.upnl.org']
-  #     secretName: gitlab
+  tls:
+    - hosts: ['newgit.upnl.org']
+      secretName: gitlab
   rules:
   - host: newgit.upnl.org
     http:
@@ -76,18 +76,18 @@ spec:
       - backend:
           serviceName: gitlab
           servicePort: 80
-# ---
-# apiVersion: cert-manager.io/v1alpha2
-# kind: Certificate
-# metadata:
-#   name: gitlab
-#   namespace: gitlab
-# spec:
-#   secretName: gitlab
-#   dnsNames:
-#     - git.upnl.org
-#   issuerRef:
-#     name: letsencrypt-prod
-#     kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  secretName: gitlab
+  dnsNames:
+    - newgit.upnl.org
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
 
 # TODO: gitlab-runner
