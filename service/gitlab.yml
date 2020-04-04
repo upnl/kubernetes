@@ -20,26 +20,26 @@ spec:
         app: gitlab
     spec:
       containers:
+      - name: gitlab
+        image: gitlab/gitlab-ce:12.3.0-ce.0
+        ports:
+        - containerPort: 80
+        - containerPort: 22
+        volumeMounts:
         - name: gitlab
-          image: gitlab/gitlab-ce:12.3.0-ce.0
-          ports:
-            - containerPort: 80
-            - containerPort: 22
-          volumeMounts:
-            - name: gitlab
-              mountPath: /etc/gitlab
-              subPath: config
-            - name: gitlab
-              mountPath: /var/opt/gitlab
-              subPath: data
-            - name: gitlab
-              mountPath: /var/log/gitlab
-              subPath: logs
+          mountPath: /etc/gitlab
+          subPath: config
+        - name: gitlab
+          mountPath: /var/opt/gitlab
+          subPath: data
+        - name: gitlab
+          mountPath: /var/log/gitlab
+          subPath: logs
       volumes:
-        - name: gitlab
-          hostPath:
-              path: /srv/gitlab
-              type: DirectoryOrCreate
+      - name: gitlab
+        hostPath:
+          path: /srv/gitlab
+          type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
@@ -51,9 +51,9 @@ spec:
     app: gitlab
   type: ClusterIP
   ports:
-    - port: 80
-      protocol: TCP
-      targetPort: 80
+  - port: 80
+    protocol: TCP
+    targetPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -65,9 +65,9 @@ spec:
     app: gitlab
   type: ClusterIP
   ports:
-    - port: 443
-      protocol: TCP
-      targetPort: 443
+  - port: 443
+    protocol: TCP
+    targetPort: 443
 ---
 apiVersion: v1
 kind: Service
@@ -79,9 +79,9 @@ spec:
     app: gitlab
   type: ClusterIP
   ports:
-    - port: 22
-      protocol: TCP
-      targetPort: 22
+  - port: 22
+    protocol: TCP
+    targetPort: 22
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -95,15 +95,15 @@ metadata:
   #   ingress.kubernetes.io/hsts-include-subdomains: "false"
 spec:
   tls:
-    - hosts: ['newgit.upnl.org']
-      secretName: gitlab
+  - hosts: ['newgit.upnl.org']
+    secretName: gitlab
   rules:
   - host: newgit.upnl.org
     http:
       paths:
       - backend:
-          serviceName: gitlab
-          servicePort: 80
+        serviceName: gitlab
+        servicePort: 80
 ---
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
@@ -113,7 +113,7 @@ metadata:
 spec:
   secretName: gitlab
   dnsNames:
-    - newgit.upnl.org
+  - newgit.upnl.org
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
