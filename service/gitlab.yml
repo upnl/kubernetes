@@ -20,26 +20,35 @@ spec:
         app: gitlab
     spec:
       containers:
-      - name: gitlab
-        image: gitlab/gitlab-ce:12.3.0-ce.0
-        ports:
-        - containerPort: 80
-        - containerPort: 22
-        volumeMounts:
         - name: gitlab
-          mountPath: /etc/gitlab
-          subPath: config
-        - name: gitlab
-          mountPath: /var/opt/gitlab
-          subPath: data
-        - name: gitlab
-          mountPath: /var/log/gitlab
-          subPath: logs
+          image: gitlab/gitlab-ce:12.7.6-ce.0
+          ports:
+            - containerPort: 80
+            - containerPort: 22
+          volumeMounts:
+            - name: gitlab-config
+              mountPath: /etc/gitlab
+            - name: gitlab-data
+              mountPath: /var/opt/gitlab
+            - name: gitlab-logs
+              mountPath: /var/log/gitlab
+          resources:
+            limits:
+              cpu: '1600m'
+              memory: '4Gi'
       volumes:
-      - name: gitlab
-        hostPath:
-          path: /srv/gitlab
-          type: DirectoryOrCreate
+        - name: gitlab-config
+          hostPath:
+            path: /srv/gitlab/config
+            type: DirectoryOrCreate
+        - name: gitlab-data
+          hostPath:
+            path: /srv/gitlab/data
+            type: DirectoryOrCreate
+        - name: gitlab-logs
+          hostPath:
+            path: /srv/gitlab/logs
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
@@ -51,23 +60,9 @@ spec:
     app: gitlab
   type: ClusterIP
   ports:
-  - port: 80
-    protocol: TCP
-    targetPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gitlab-tls
-  namespace: gitlab
-spec:
-  selector:
-    app: gitlab
-  type: ClusterIP
-  ports:
-  - port: 443
-    protocol: TCP
-    targetPort: 443
+    - port: 80
+      protocol: TCP
+      targetPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -77,11 +72,11 @@ metadata:
 spec:
   selector:
     app: gitlab
-  type: ClusterIP
+  type: LoadBalancer
   ports:
-  - port: 22
-    protocol: TCP
-    targetPort: 22
+    - port: 22
+      protocol: TCP
+      targetPort: 22
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -91,19 +86,19 @@ metadata:
   annotations:
     ingress.kubernetes.io/ssl-redirect: "true"
     ingress.kubernetes.io/force-hsts: "true"
-  #   ingress.kubernetes.io/hsts-max-age: "15778800"
-  #   ingress.kubernetes.io/hsts-include-subdomains: "false"
+    ingress.kubernetes.io/hsts-max-age: "15778800"
+    ingress.kubernetes.io/hsts-include-subdomains: "false"
 spec:
   tls:
-  - hosts: ['newgit.upnl.org']
+  - hosts: ['git.upnl.org']
     secretName: gitlab
   rules:
-  - host: newgit.upnl.org
+  - host: git.upnl.org
     http:
       paths:
       - backend:
-        serviceName: gitlab
-        servicePort: 80
+          serviceName: gitlab
+          servicePort: 80
 ---
 apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
@@ -113,7 +108,7 @@ metadata:
 spec:
   secretName: gitlab
   dnsNames:
-  - newgit.upnl.org
+    - git.upnl.org
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer

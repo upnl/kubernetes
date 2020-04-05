@@ -25,14 +25,12 @@ spec:
             - containerPort: 54323
           volumeMounts:
             - name: pokemon-db-sqlite-db
-              mountPath: /app/pokemon/db/
-              subPath: db
+              mountPath: /app/pokemon/db
       volumes:
         - name: pokemon-db-sqlite-db
           hostPath:
-              path: /srv/pokemon
-              type: DirectoryOrCreate
-            
+            path: /srv/pokemon-db/sqlite
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
