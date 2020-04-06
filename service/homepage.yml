@@ -187,3 +187,95 @@ spec:
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: homepage
+data:
+  backup-db: |
+    #!/bin/bash
+    set -euo pipefail; IFS=$'\n\t'
+    apt update && apt install -y awscli
+    PGPASSWORD="$POSTGRES_PASSWORD" pg_dump \
+      --format=custom \
+      --host="$POSTGRES_HOST" \
+      --port="$POSTGRES_PORT" \
+      --username="$POSTGRES_USER" \
+      "$POSTGRES_DB" |
+        aws --region ap-northeast-2 s3 cp - \
+        "s3://upnl-backups/upnl.org/pg_dump-$(date -Im).dump"
+  backup-upload: |
+    #!/bin/bash
+    set -euo pipefail; IFS=$'\n\t'
+    apt update && apt install -y awscli bc
+
+    CHECKPOINT_PATH="$(mktemp)"
+    cp /mnt/scripts/checkpoint "$CHECKPOINT_PATH"
+    chmod +x "$CHECKPOINT_PATH"
+
+    TOTAL_SIZE="$(du -bs /mnt/upload/ | cut -f1)"
+    tar \
+      --create \
+      --record-size=10240 \
+      --checkpoint=10000 \
+      --checkpoint-action="exec=$CHECKPOINT_PATH \$TAR_CHECKPOINT $TOTAL_SIZE" \
+      --directory=/mnt \
+      upload |
+        aws --region ap-northeast-2 s3 cp - \
+        "s3://upnl-backups/upnl.org/upload-$(date -Im).tar"
+  checkpoint: |
+    #!/bin/bash
+    set -euo pipefail; IFS=$'\n\t'
+    CURRENT_CHECKPOINT="$1"
+    CURRENT_SIZE="$(( (CURRENT_CHECKPOINT - 1)*10240 ))"
+    CURRENT_SIZE_MIB="$(echo "scale=2; ${CURRENT_SIZE} / 1048576" | bc -l)"
+    TOTAL_SIZE="$2"
+    TOTAL_SIZE_MIB="$(echo "scale=2; ${TOTAL_SIZE} / 1048576" | bc -l)"
+    PERCENTAGE="$(echo "scale=2; ${CURRENT_SIZE} / ${TOTAL_SIZE} * 100" | bc -l)"
+    echo "${CURRENT_SIZE_MIB}MiB / ${TOTAL_SIZE_MIB}MiB (${PERCENTAGE}%)" >&2
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: backup
+  namespace: homepage
+spec:
+  schedule: '0 18 * * *' # 03:00 KST
+  concurrencyPolicy: Replace
+  jobTemplate:
+    metadata:
+      name: backup
+      namespace: homepage
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup-db
+            image: postgres:9.3
+            command: ['/bin/bash', '/mnt/scripts/backup-db']
+            envFrom:
+            - secretRef:
+                name: env
+            volumeMounts:
+            - name: scripts
+              mountPath: /mnt/scripts
+          - name: backup-upload
+            image: debian:buster-slim
+            command: ['/bin/bash', '/mnt/scripts/backup-upload']
+            volumeMounts:
+            - name: scripts
+              mountPath: /mnt/scripts
+            - name: upload
+              mountPath: /mnt/upload
+          restartPolicy: Never
+          volumes:
+          - name: scripts
+            configMap:
+              name: backup-scripts
+          - name: upload
+            hostPath:
+              path: /srv/homepage/upload
+              type: Directory
+      backoffLimit: 1
