@@ -3,19 +3,6 @@ kind: Namespace
 metadata:
   name: pokemon-db
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: pokemon-db
-  namespace: pokemon-db
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: ebs
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,11 +25,12 @@ spec:
             - containerPort: 54323
           volumeMounts:
             - name: pokemon-db-sqlite-db
-              mountPath: /app/pokemon/db/
+              mountPath: /app/pokemon/db
       volumes:
         - name: pokemon-db-sqlite-db
-          persistentVolumeClaim:
-            claimName: pokemon-db
+          hostPath:
+            path: /srv/pokemon-db/sqlite
+            type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: Service
