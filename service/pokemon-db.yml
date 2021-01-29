@@ -45,7 +45,7 @@ spec:
       port: 54323
       targetPort: 54323
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: pokemon-db
@@ -57,17 +57,21 @@ metadata:
     ingress.kubernetes.io/hsts-include-subdomains: "false"
 spec:
   tls:
-    - hosts: ['pokemon.upnl.org']
-      secretName: pokemon-db
+  - hosts: ['pokemon.upnl.org']
+    secretName: pokemon-db
   rules:
-    - host: pokemon.upnl.org
-      http:
-        paths:
-          - backend:
-              serviceName: pokemon-db
-              servicePort: 54323
+  - host: pokemon.upnl.org
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pokemon-db
+            port:
+              number: 80
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: pokemon-db

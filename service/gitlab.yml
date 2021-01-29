@@ -78,7 +78,7 @@ spec:
       protocol: TCP
       targetPort: 22
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: gitlab
@@ -96,11 +96,15 @@ spec:
   - host: git.upnl.org
     http:
       paths:
-      - backend:
-          serviceName: gitlab
-          servicePort: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: gitlab
+            port:
+              number: 80
 ---
-apiVersion: cert-manager.io/v1alpha2
+apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: gitlab
