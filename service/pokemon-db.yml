@@ -42,7 +42,7 @@ spec:
     app: pokemon-db
   ports:
     - protocol: TCP
-      port: 54323
+      port: 80
       targetPort: 54323
 ---
 apiVersion: networking.k8s.io/v1
