@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: flask
-          image: ghcr.io/upnl/pokemon-db:2021-07-29
+          image: ghcr.io/upnl/pokemon-db:2021-08-02
           ports:
             - containerPort: 54323
           volumeMounts:
