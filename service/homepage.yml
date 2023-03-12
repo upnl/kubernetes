@@ -109,6 +109,8 @@ spec:
         envFrom:
         - secretRef:
             name: env
+      imagePullSecrets:
+      - name: upnl-ghcr
       volumes:
         - name: upload
           hostPath:
@@ -138,6 +140,8 @@ spec:
             name: env
         command: ["celery"]
         args: ["worker", "-A", "run.celery"]
+      imagePullSecrets:
+      - name: upnl-ghcr
 ---
 apiVersion: v1
 kind: Service
